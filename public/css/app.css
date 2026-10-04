@@ -1,0 +1,850 @@
+/* ============================================================
+   VPS BOT CONTROL CENTER — базовый CSS
+   ------------------------------------------------------------
+   Структура файла:
+     1. Переменные (цвета, отступы, радиусы) — меняешь в одном месте
+     2. Сброс
+     3. Body и общий каркас (.app)
+     4. Панель (.panel) — общая рамка для всех секций
+     5. VPS PROPERTIES (верхняя панель)
+     6. Три колонки (.columns) и адаптив
+     7. Переключатели автозапуска (.toggle)
+     8. Список ботов (.bot-list и дочерние)
+     9. Minecraft: respect + чат
+    10. HotMC: плашка переключения VPN
+    11. GLOBAL EVENTS
+    12. Настройка Minecraft-сервера
+    13. Модалка инвентаря
+    14. Кнопки-иконки (для JS-шаблонов)
+    15. Адаптив (мобильная версия)
+   ============================================================ */
+
+
+/* ============================================================
+   0. ПОДКЛЮЧЕНИЕ ШРИФТОВ
+   ------------------------------------------------------------
+   Файлы лежат в public/fonts/, доступны по URL /fonts/<имя>.
+   Путь в src url(...) — от корня сайта, НЕ относительно css-файла.
+   ============================================================ */
+
+/* Обычное начертание основного шрифта */
+@font-face {
+  font-family: 'PixelFont';
+  src: url('/fonts/minecraft.ttf') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;   /* системный шрифт показывается сразу, потом подменяется */
+}
+
+/* Жирное начертание основного шрифта */
+@font-face {
+  font-family: 'PixelFont';
+  src: url('/fonts/minecraft.ttf') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Монотипный шрифт для чата и логов */
+@font-face {
+  font-family: 'MonoPixel';
+  src: url('/fonts/minecraft.ttf') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Icons';
+  src: url('/fonts/E-Mono-R.ttf') format('woff2');
+  font-display: swap;
+}
+/* ============================================================
+   1. ПЕРЕМЕННЫЕ
+   ------------------------------------------------------------
+   Все цвета и размеры хранятся здесь.
+   Меняешь тут — обновляется везде, где используется var(--имя).
+   ============================================================ */
+:root {
+  /* --- Цвета фона --- */
+  --bg-page:        #232323;   /* фон всей страницы (за панелями) */
+  --bg-panel:       #1a1a1a;   /* фон панелей (Minecraft, Discord, VPS...) */
+  --bg-card:        #1f1f1f;   /* фон карточек внутри VPS (CPU, RAM, DISK) */
+  --bg-input:       #141414;   /* фон полей ввода и логов */
+  --bg-btn:         #2a2a2a;   /* фон кнопок по умолчанию */
+  --bg-btn-hover:   #333333;   /* фон кнопок при наведении */
+
+  /* --- Цвета текста --- */
+  --text-main:      #dddddd;   /* основной текст */
+  --text-dim:       #888888;   /* второстепенный текст (подписи, hint) */
+  --text-mute:      #666666;   /* совсем приглушённый (заглушки) */
+  --text-title:     #ffffff;   /* заголовки панелей */
+
+  /* --- Границы --- */
+  --border:         #444444;   /* обычная граница элементов */
+  --border-strong:  #555555;   /* граница панелей и кнопок */
+  --border-dashed:  #333333;   /* пунктир для заглушек */
+
+  /* --- Акцентные цвета панелей (потом можно использовать в заголовках) --- */
+  --accent-cyan:    #89dceb;   /* VPS PROPERTIES */
+  --accent-green:   #52A434;   /* MINECRAFT */
+  --accent-blue:    #9EA5F2;   /* DISCORD */
+  --accent-orange:  #FF5A00;   /* HOT.MC */
+  --accent-red:     #f38ba8;   /* ошибки/опасные действия */
+  --accent-yellow:  #f9e2af;   /* предупреждения */
+
+  /* --- Скругления --- */
+  --radius-panel:   12px;      /* панели */
+  --radius-card:    8px;       /* карточки внутри VPS */
+  --radius-btn:     6px;       /* кнопки */
+  --radius-input:   6px;       /* поля ввода */
+
+  /* --- Отступы --- */
+  --gap-sm:         6px;       /* мелкий зазор между элементами */
+  --gap-md:         12px;      /* средний зазор (между секциями) */
+  --gap-lg:         16px;      /* крупный отступ (padding страницы) */
+
+  /* --- Шрифты --- */
+  --font-main:      'PixelFont', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono:      'minecraft.ttf', ui-monospace, monospace;
+}
+
+
+/* ============================================================
+   2. СБРОС
+   ------------------------------------------------------------
+   Убирает неожиданные отступы и приводит размеры к предсказуемым.
+   ============================================================ */
+* { box-sizing: border-box; }
+
+
+/* ============================================================
+   3. BODY И ОБЩИЙ КАРКАС
+   ============================================================ */
+body {
+  margin: 0;
+  padding: var(--gap-lg);
+  font-family: var(--font-main);
+  font-size: 14px;
+  background: var(--bg-page);       /* фон всей страницы */
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+/* .app — вертикальная колонка: VPS → три колонки → события → настройка сервера */
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+  max-width: 1400px;
+  margin: 0 auto;                    /* центрируем по горизонтали на широких экранах */
+}
+
+
+
+
+/* ============================================================
+   4. ПАНЕЛЬ
+   ------------------------------------------------------------
+   .panel — базовая «коробка» для VPS, Minecraft, Discord, HotMC, Events.
+   Все секции наследуют стиль отсюда.
+   ============================================================ */
+.panel {
+  background: var(--bg-panel);
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius-panel);
+  padding: var(--gap-md);
+}
+
+/* Заголовок панели (VPS PROPERTIES, MINECRAFT, ...) */
+.panel__title {
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-title);
+  margin-bottom: var(--gap-md);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Цвета заголовков по модулям */
+
+#vps-panel      .panel__title { color: var(--accent-cyan);   }
+#minecraft-col  .panel__title { color: var(--accent-green);  }
+#discord-col    .panel__title { color: var(--accent-blue);   }
+#hotmc-col      .panel__title { color: var(--accent-orange); }
+#events-panel   .panel__title { color: var(--text-main);     }
+
+/* Модификаторы цвета границы панели — потом можно повесить акцентный цвет */
+.panel--cyan   { border-color: var(--accent-cyan);   }
+.panel--green  { border-color: var(--accent-green);  }
+.panel--blue   { border-color: var(--accent-blue);   }
+.panel--orange { border-color: var(--accent-orange); }
+.panel--gray   { border-color: var(--border);        }
+
+
+/* ============================================================
+   5. VPS PROPERTIES — верхняя панель с метриками
+   ------------------------------------------------------------
+   .vps-grid — сетка карточек. Автоматически переливается по ширине.
+   .vps-card — одна плитка (CPU, RAM, DISK, ...).
+   ============================================================ */
+.vps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--gap-sm);
+}
+
+.vps-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 70px;
+}
+
+/* Заголовок карточки (CPU, RAM, DISK) */
+.vps-card__label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+}
+
+/* Главное значение в карточке */
+.vps-card__value {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* Мелкая подпись под значением */
+.vps-card__sub {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* Карточка со статусами модулей — занимает 2 колонки сетки */
+.vps-card--health { grid-column: span 2; }
+
+/* Список «точек» здоровья модулей */
+.health-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-sm);
+  margin-top: 4px;
+}
+
+/* Одна «точка» здоровья модуля */
+.health-dot {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+/* Цвета по состоянию (ставит JS через data-state) */
+.health-dot[data-state="healthy"]  { color: var(--accent-green);  border-color: var(--accent-green);  }
+.health-dot[data-state="degraded"] { color: var(--accent-yellow); border-color: var(--accent-yellow); }
+.health-dot[data-state="offline"]  { color: var(--accent-red);    border-color: var(--accent-red);    }
+.health-dot[data-state="disabled"] { color: var(--text-mute);     border-color: var(--border);        }
+
+
+/* ============================================================
+   6. ТРИ КОЛОНКИ + АДАПТИВ
+   ------------------------------------------------------------
+   Десктоп: три колонки рядом.
+   Мобилка (<900px): в столбик.
+   ============================================================ */
+.columns {
+  display: grid;
+  grid-template-columns: 3fr 2fr 2fr;   /* было 1fr 1fr 1fr */
+  gap: var(--gap-md);
+}
+
+
+/* ============================================================
+   7. ПЕРЕКЛЮЧАТЕЛЬ АВТОЗАПУСКА
+   ------------------------------------------------------------
+   Используется в шапках Minecraft / Discord / HotMC.
+   ============================================================ */
+.panel__toggle {
+  margin-bottom: var(--gap-sm);
+  font-size: 12px;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-dim);
+}
+
+.toggle input { cursor: pointer; accent-color: var(--accent-green); }
+
+.toggle__label { font-size: 12px; }
+
+
+/* ============================================================
+   8. СПИСОК БОТОВ
+   ------------------------------------------------------------
+   .bot-list — вертикальный контейнер, куда JS вставляет строки.
+   .bot-item — одна строка (бот/аккаунт).
+   .placeholder — «Ожидание данных…» пока пусто.
+   ============================================================ */
+.bot-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.bot-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--gap-sm);
+  font-size: 13px;
+}
+
+/* Левая часть строки: ник + метаинфа */
+.bot-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bot-item__name  { font-weight: 700; color: var(--text-main); }
+.bot-item__meta  { font-size: 11px; color: var(--text-dim); }
+
+/* Правая часть: бейдж статуса + кнопки */
+.bot-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Бейдж статуса: В игре / Оффлайн / ... */
+.badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.badge[data-state="online"]  { color: var(--accent-green);  border-color: var(--accent-green);  }
+.badge[data-state="offline"] { color: var(--accent-red);    border-color: var(--accent-red);    }
+.badge[data-state="error"]   { color: var(--accent-orange); border-color: var(--accent-orange); }
+.badge[data-state="kicked"]  { color: var(--accent-yellow); border-color: var(--accent-yellow); }
+
+/* Заглушка «Ожидание данных…» */
+.placeholder {
+  color: var(--text-mute);
+  font-size: 12px;
+  padding: 10px;
+  border: 1px dashed var(--border-dashed);
+  border-radius: var(--radius-card);
+  text-align: center;
+}
+
+
+/* ============================================================
+   9. MINECRAFT: respect + чат
+   ------------------------------------------------------------
+   Блок /respect и общий чат со всех трёх ботов.
+   ============================================================ */
+.respect-panel {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: var(--gap-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 8px;
+}
+
+.respect-panel__label {
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.respect-panel__input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--text-main);
+  padding: 5px 8px;
+  font-size: 12px;
+  font-family: var(--font-main);
+}
+
+.respect-panel__btn {
+  background: var(--bg-btn);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-btn);
+  color: var(--text-main);
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.respect-panel__btn:hover { background: var(--bg-btn-hover); }
+
+/* Лог чата: монотипный шрифт, скроллится */
+.chat-log {
+  margin-top: var(--gap-sm);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 10px;
+  min-height: 140px;
+  max-height: 260px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Строка чата: [время] ник: текст */
+.chat-log__line     { color: var(--text-main); margin-bottom: 2px; }
+.chat-log__time     { color: var(--text-mute); }
+.chat-log__sender   { color: var(--text-dim); }
+.chat-log__text     { color: var(--text-main); }
+
+/* Если в тексте упомянули нашего бота — подсвечиваем cyan'ом */
+.chat-log__line--mention .chat-log__text { color: var(--accent-cyan); }
+
+/* Поле ввода сообщения + выбор бота */
+.chat-input-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.chat-input-row__select,
+.chat-input-row__input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--text-main);
+  padding: 5px 8px;
+  font-size: 12px;
+  font-family: var(--font-main);
+}
+
+.chat-input-row__input  { flex: 1; min-width: 0; }
+
+.chat-input-row__btn {
+  background: var(--bg-btn);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-btn);
+  color: var(--text-main);
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.chat-input-row__btn:hover { background: var(--bg-btn-hover); }
+
+.chat-input-row__select {
+  background: var(--bg-input);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  padding: 5px 24px 5px 8px;           /* правый отступ под стрелку */
+  font-family: var(--font-main);
+  font-size: 12px;
+  appearance: none;                    /* убирает системную стрелку */
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-dim) 50%),
+    linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
+  background-position:
+    calc(100% - 12px) 50%,
+    calc(100% - 8px) 50%;
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.chat-input-row__select:focus {
+  outline: none;
+  border-color: var(--accent-green);   /* подсветка рамки при фокусе */
+}
+
+/* ============================================================
+   10. HOTMC — плашка переключения VPN
+   ------------------------------------------------------------
+   Показывается после успешного голосования, пока не нажмёшь «Продолжить».
+   ============================================================ */
+.resume-panel {
+  margin-top: var(--gap-sm);
+  background: var(--bg-card);
+  border: 1px dashed var(--accent-orange);
+  border-radius: var(--radius-card);
+  padding: 12px;
+  font-size: 12px;
+}
+
+.resume-panel__title {
+  font-weight: 700;
+  color: var(--accent-orange);
+  margin-bottom: 6px;
+}
+
+.resume-panel__hint {
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.resume-panel__btn {
+  background: var(--accent-orange);
+  color: #111;
+  border: none;
+  border-radius: var(--radius-btn);
+  padding: 8px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.resume-panel__btn:hover { opacity: 0.9; }
+
+
+/* ============================================================
+   11. GLOBAL EVENTS — общий лог событий
+   ------------------------------------------------------------
+   Пока пустой, будем наполнять позже.
+   ============================================================ */
+.events-log {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 10px;
+  min-height: 120px;
+  max-height: 220px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+/* ============================================================
+   12. MINECRAFT SERVER — глобальный host/port
+   ------------------------------------------------------------
+   Одна строка: label + host + port + CHANGE.
+   ============================================================ */
+.server-config {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-panel);
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+.server-config__label {
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.server-config__input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--text-main);
+  padding: 5px 8px;
+  font-size: 12px;
+  font-family: var(--font-main);
+  flex: 1;
+  min-width: 0;
+}
+.server-config__input--port { flex: 0 0 90px; }
+
+.server-config__btn {
+  background: var(--bg-btn);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-btn);
+  color: var(--text-main);
+  padding: 5px 14px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+.server-config__btn:hover { background: var(--bg-btn-hover); }
+
+
+/* ============================================================
+   13. МОДАЛКА ИНВЕНТАРЯ
+   ------------------------------------------------------------
+   Открывается по клику 🎒 в строке бота.
+   ============================================================ */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal[hidden] { display: none; }
+
+.modal__body {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-panel);
+  padding: 18px;
+  max-width: 600px;
+  width: 92%;
+  max-height: 82vh;
+  overflow-y: auto;
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal__title { margin: 0; font-size: 14px; color: var(--text-title); }
+
+.modal__close {
+  background: var(--bg-btn);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-btn);
+  color: var(--text-main);
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.modal__close:hover { background: var(--bg-btn-hover); }
+
+/* Сетка предметов инвентаря */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+}
+
+/* Один слот (JS будет вставлять) */
+.inventory-slot {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 8px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-main);
+}
+.inventory-slot__name  { margin-top: 4px; color: var(--text-main); }
+.inventory-slot__count { color: var(--accent-green); font-weight: 700; }
+.inventory-slot__id    { font-size: 10px; color: var(--text-dim); }
+
+
+
+/* ============================================================
+   14. КНОПКИ-ИКОНКИ
+   ------------------------------------------------------------
+   Тёмный фон, рамка и иконка — цветом блока.
+   ============================================================ */
+
+.btn-icon {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-btn);
+  color: var(--text-main);
+  background: #232323;
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.btn-icon:hover:not(:disabled) { background: #2e2e2e; }
+.btn-icon:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* --- Minecraft: рамка и иконка зелёные --- */
+#minecraft-col .btn-icon {
+  background: #232323;
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+/* --- Discord: рамка и иконка фиолетовые --- */
+#discord-col .btn-icon {
+  background: #232323;
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+/* --- HotMC: рамка и иконка оранжевые --- */
+#hotmc-col .btn-icon {
+  background: #232323;
+  border-color: var(--accent-orange);
+  color: var(--accent-orange);
+}
+
+
+/* ============================================================
+   15. АДАПТИВ — мобильная версия
+   ------------------------------------------------------------
+   На узком экране три колонки складываются в одну.
+   VPS-плитки автоматически пересобираются (auto-fit).
+   ============================================================ */
+@media (max-width: 900px) {
+  body { padding: 10px; }
+
+  .columns {
+    grid-template-columns: 1fr;   /* одна колонка */
+  }
+
+  .vps-card--health { grid-column: auto; }   /* не растягиваем на 2 ячейки */
+
+  .chat-log      { max-height: 200px; }
+  .events-log    { max-height: 160px; }
+
+  .server-config {
+    flex-wrap: wrap;
+  }
+  .server-config__input--port { flex: 1; }
+}
+
+/* ============================================================
+   16. ПИКСЕЛЬНЫЕ РАМКИ
+   ------------------------------------------------------------
+   Чтобы применить к панели/карточке — добавь класс "pixel" в HTML:
+     <section class="panel panel--green pixel">
+     <div class="vps-card pixel">
+
+   Как работает:
+     - border — обычная рамка вокруг элемента
+     - ::before / ::after — два "уголка" в противоположных углах
+     - размеры уголков меняются через --px-corner-size
+     - цвет уголков — --px-corner-color
+   ============================================================ */
+
+.pixel {
+  position: relative;                  /* чтобы уголки позиционировались относительно этой рамки */
+  --px-corner-size: 8px;               /* длина "плечика" уголка */
+  --px-corner-thickness: 2px;          /* толщина линии уголка */
+  --px-corner-offset: -2px;            /* насколько вынести уголок за рамку */
+}
+
+/* Верхний-левый уголок *//* ============================================================
+.pixel::before {
+  content: '';
+  position: absolute;
+  top:    var(--px-corner-offset);
+  left:   var(--px-corner-offset);
+  width:  var(--px-corner-size);
+  height: var(--px-corner-size);
+  border-top:  var(--px-corner-thickness) solid currentColor;
+  border-left: var(--px-corner-thickness) solid currentColor;
+  pointer-events: none;                /* не мешает кликам по кнопкам под уголком */
+
+/* Нижний-правый уголок */
+.pixel::after {
+  content: '';
+  position: absolute;
+  bottom: var(--px-corner-offset);
+  right:  var(--px-corner-offset);
+  width:  var(--px-corner-size);
+  height: var(--px-corner-size);
+  border-bottom: var(--px-corner-thickness) solid currentColor;
+  border-right:  var(--px-corner-thickness) solid currentColor;
+  pointer-events: none;
+}
+
+/* Цвет уголка берётся из color родителя.
+   Ставим color = цвет рамки панели, чтобы уголки совпадали с border. */
+.panel.pixel.panel--cyan   { color: var(--accent-cyan);   }
+.panel.pixel.panel--green  { color: var(--accent-green);  }
+.panel.pixel.panel--blue   { color: var(--accent-blue);   }
+.panel.pixel.panel--orange { color: var(--accent-orange); }
+.panel.pixel.panel--gray   { color: var(--border-strong); }
+
+/* ВАЖНО: внутри .pixel[color=акцент] дочерние элементы наследуют этот color.
+   Поэтому возвращаем им нормальный цвет текста. */
+.pixel > * { color: var(--text-main); }
+.pixel .panel__title  { color: var(--text-title); }
+.pixel .vps-card__label,
+.pixel .vps-card__sub,
+.pixel .bot-item__meta,
+.pixel .toggle,
+.pixel .server-config__label { color: var(--text-dim); }
+
+/* Для карточек VPS — свои размеры уголка (они мельче) */
+.vps-card.pixel {
+  --px-corner-size: 6px;
+  --px-corner-thickness: 1px;
+}
+
+/* ============================================================
+   GLOBAL EVENTS — строки событий
+   ============================================================ */
+
+.events-log__line {
+  display: flex;
+  gap: 8px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.events-log__time {
+  color: var(--text-mute);
+  flex-shrink: 0;
+}
+
+.events-log__source {
+  font-weight: 700;
+  flex-shrink: 0;
+  width: 90px;
+}
+
+.events-log__msg {
+  color: var(--text-main);
+}
+
+/* Цвет источника по модулю */
+.events-log__line[data-source="SYSTEM"]    .events-log__source { color: var(--accent-cyan);   }
+.events-log__line[data-source="MINECRAFT"] .events-log__source { color: var(--accent-green);  }
+.events-log__line[data-source="DISCORD"]   .events-log__source { color: var(--accent-blue);   }
+.events-log__line[data-source="HOTMC"]     .events-log__source { color: var(--accent-orange); }
+
+/* Цвет текста по уровню события */
+.events-log__line[data-level="success"] .events-log__msg { color: var(--accent-green);  }
+.events-log__line[data-level="warning"] .events-log__msg { color: var(--accent-yellow); }
+.events-log__line[data-level="error"]   .events-log__msg { color: var(--accent-red);    }
+.events-log__line[data-level="info"]    .events-log__msg { color: var(--text-main);     }

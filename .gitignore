@@ -1,9 +1,24 @@
-# Зависимости (папка с загруженным кодом npm)
+# Зависимости
 node_modules/
 dist/
 
 # Секретные файлы конфигурации (пароли, токены)
 .env
+.env.local
+.env.*.local
+
+# Данные и логи
+data/
+logs/
+*.log
 
 # Системные файлы Mac
 .DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Прочее
+*.swp
+Thumbs.db

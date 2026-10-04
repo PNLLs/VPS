@@ -4,202 +4,187 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VPS Bot Control Center</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1e1e2e;
-            color: #cdd6f4;
-            margin: 0;
-            padding: 40px;
-            text-align: center;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #252538;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        h1 { color: #89b4fa; margin-bottom: 5px; }
-        h2 { color: #cba6f7; text-align: left; margin-top: 30px; font-size: 1.2em; border-bottom: 1px solid #45475a; padding-bottom: 5px; }
-        .platform-badge {
-            color: #a6e3a1;
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .status {
-            display: inline-block;
-            padding: 6px 14px;
-            background: #a6e3a1;
-            color: #11111b;
-            border-radius: 20px;
-            font-weight: bold;
-            margin: 15px 0;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 15px;
-            text-align: left;
-        }
-        .card {
-            background: #1e1e2e;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #45475a;
-        }
-        .card h3 { margin: 0 0 10px 0; color: #cba6f7; font-size: 0.9em; text-transform: uppercase; }
-        .card .value { font-size: 1.4em; font-weight: bold; color: #f5e0dc; }
-        
-        .bot-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 15px;
-            text-align: left;
-        }
-        .bot-item {
-            background: #1e1e2e;
-            padding: 12px 20px;
-            border-radius: 8px;
-            border: 1px solid #45475a;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .bot-info { display: flex; flex-direction: column; }
-        .bot-name { font-weight: bold; color: #cdd6f4; }
-        .bot-meta { font-size: 0.8em; color: #6c7086; }
-        .badge {
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.85em;
-            font-weight: bold;
-        }
-        .badge-online { background: #a6e3a1; color: #11111b; }
-        .badge-offline { background: #f38ba8; color: #11111b; }
-        .badge-error { background: #fab387; color: #11111b; }
-        .badge-kicked { background: #f9e2af; color: #11111b; }
-    </style>
+    <!-- Твой CSS-фреймворк подключаешь здесь -->
+    <link rel="stylesheet" href="/css/app.css">
 </head>
 <body>
-    <div class="container">
-        <h1>VPS Bot Control Center</h1>
-        <div class="platform-badge">Платформа: <span id="platform">Загрузка...</span></div>
-        
-        <div><div class="status">Сервер: Онлайн</div></div>
 
-        <h2>Мониторинг Системы</h2>
-        <div class="stats-grid">
-            <div class="card">
-                <h3>Загрузка памяти</h3>
-                <div class="value" id="mem-percent">0%</div>
-                <small style="color: #6c7086;">Занято: <span id="mem-details">0 / 0 MB</span></small>
+<div class="app">
+
+    <!-- ============================================================ -->
+    <!--  VPS PROPERTIES — верхняя широкая панель                    -->
+    <!-- ============================================================ -->
+    <section id="vps-panel" class="panel panel--cyan">
+        <header class="panel__title">VPS PROPERTIES</header>
+        <div class="vps-grid">
+
+            <div class="vps-card" data-metric="cpu">
+                <span class="vps-card__label">CPU</span>
+                <span class="vps-card__value" id="vps-cpu-value">—</span>
+                <span class="vps-card__sub"   id="vps-cpu-sub">—</span>
             </div>
-            <div class="card">
-                <h3>Время работы (Uptime)</h3>
-                <div class="value" id="uptime">0 сек</div>
-                <small style="color: #6c7086;">Непрерывный аптайм</small>
+
+            <div class="vps-card" data-metric="ram">
+                <span class="vps-card__label">RAM</span>
+                <span class="vps-card__value" id="vps-ram-value">—</span>
+                <span class="vps-card__sub"   id="vps-ram-sub">—</span>
+            </div>
+
+            <div class="vps-card" data-metric="disk">
+                <span class="vps-card__label">DISK</span>
+                <span class="vps-card__value" id="vps-disk-value">—</span>
+                <span class="vps-card__sub"   id="vps-disk-sub">—</span>
+            </div>
+
+            <div class="vps-card" data-metric="uptime">
+                <span class="vps-card__label">UPTIME</span>
+                <span class="vps-card__value" id="vps-uptime-value">—</span>
+                <span class="vps-card__sub"   id="vps-uptime-sub">—</span>
+            </div>
+
+            <div class="vps-card" data-metric="load">
+                <span class="vps-card__label">LOAD AVG</span>
+                <span class="vps-card__value" id="vps-load-value">—</span>
+                <span class="vps-card__sub"   id="vps-load-sub">1m / 5m / 15m</span>
+            </div>
+
+            <div class="vps-card" data-metric="ip">
+                <span class="vps-card__label">IP</span>
+                <span class="vps-card__value" id="vps-ip-external">—</span>
+                <span class="vps-card__sub"   id="vps-ip-local">local: —</span>
+            </div>
+
+            <div class="vps-card vps-card--health" data-metric="health">
+                <span class="vps-card__label">MODULES</span>
+                <div id="vps-health-list" class="health-list">
+                    <!-- JS вставит сюда: <span class="health-dot" data-state="healthy">Web API</span> -->
+                </div>
             </div>
         </div>
+    </section>
 
-        <h2>Discord Боты (×3)</h2>
-        <div class="bot-list" id="discord-bot-list">
-            <div style="color: #6c7086;">Загрузка статусов ботов...</div>
-        </div>
+    <!-- ============================================================ -->
+    <!--  ТРИ КОЛОНКИ                                                 -->
+    <!-- ============================================================ -->
+    <div class="columns">
 
-        <h2>Minecraft Mineflayer Роботы (×3)</h2>
-        <div class="bot-list" id="minecraft-bot-list">
-            <div style="color: #6c7086;">Загрузка роботов...</div>
-        </div>
+        <!-- ---------------- MINECRAFT ---------------- -->
+        <section id="minecraft-col" class="panel panel--green">
+            <header class="panel__title">MINECRAFT</header>
+
+            <div class="panel__toggle">
+                <label class="toggle" title="Автозапуск модуля">
+                    <input type="checkbox" id="toggle-minecraft" checked>
+                    <span class="toggle__slider"></span>
+                    <span class="toggle__label">AUTO</span>
+                </label>
+            </div>
+
+            <div id="minecraft-bot-list" class="bot-list">
+                <div class="placeholder">Ожидание данных…</div>
+            </div>
+
+            <div class="respect-panel">
+                <label class="respect-panel__label" for="respect-target">/respect</label>
+                <input id="respect-target" class="respect-panel__input" placeholder="ник">
+                <button class="respect-panel__btn" onclick="sendRespect()">&#9654;</button>
+            </div>
+
+            <div id="chat-log" class="chat-log">
+                <div class="placeholder">Чат пуст…</div>
+            </div>
+
+            <div class="chat-input-row">
+                <select id="chat-bot-select" class="chat-input-row__select">
+                    <option value="mc_bot_1">pnalls</option>
+                    <option value="mc_bot_2">pnalls_twinone</option>
+                    <option value="mc_bot_3">pnalls_twintwo</option>
+                </select>
+                <input id="chat-input" class="chat-input-row__input" placeholder="Сообщение…">
+                <button class="chat-input-row__btn" onclick="sendGlobalChat()">&#9654;</button>
+            </div>
+        </section>
+
+        <!-- ---------------- DISCORD ---------------- -->
+        <section id="discord-col" class="panel panel--blue">
+            <header class="panel__title">DISCORD</header>
+
+            <div class="panel__toggle">
+                <label class="toggle" title="Автозапуск модуля">
+                    <input type="checkbox" id="toggle-discord" checked>
+                    <span class="toggle__slider"></span>
+                    <span class="toggle__label">AUTO</span>
+                </label>
+            </div>
+
+            <div id="discord-bot-list" class="bot-list">
+                <div class="placeholder">Ожидание данных…</div>
+            </div>
+        </section>
+
+        <!-- ---------------- HOTMC ---------------- -->
+        <section id="hotmc-col" class="panel panel--orange">
+            <header class="panel__title">HOT.MC</header>
+
+            <div class="panel__toggle">
+                <label class="toggle" title="Автозапуск модуля">
+                    <input type="checkbox" id="toggle-hotmc" checked>
+                    <span class="toggle__slider"></span>
+                    <span class="toggle__label">AUTO</span>
+                </label>
+            </div>
+
+            <div id="hotmc-bot-list" class="bot-list">
+                <div class="placeholder">Ожидание данных…</div>
+            </div>
+
+            <!-- Плашка ожидания ручного переключения VPN -->
+            <div id="hotmc-resume-panel" class="resume-panel" hidden>
+                <div class="resume-panel__title">⚠️ Переключи регион в Sota VPN</div>
+                <div class="resume-panel__hint">
+                    Смени регион в приложении Sota, дождись подключения, затем нажми «Продолжить».
+                </div>
+                <button class="resume-panel__btn" onclick="resumeHotMC()">Продолжить</button>
+            </div>
+        </section>
+
     </div>
 
-    <script>
-        async function updateSystemStats() {
-            try {
-                const response = await fetch('/api/system');
-                const data = await response.json();
-                document.getElementById('platform').innerText = data.platform;
-                document.getElementById('mem-percent').innerText = data.memory.percent;
-                document.getElementById('mem-details').innerText = `${data.memory.used} / ${data.memory.total}`;
-                const minutes = Math.round(data.uptimeSeconds / 60);
-                document.getElementById('uptime').innerText = `${minutes} мин`;
-            } catch (error) {
-                console.error("Ошибка системы:", error);
-            }
-        }
+    <!-- ============================================================ -->
+    <!--  GLOBAL EVENTS — общий лог (ниже колонок)                   -->
+    <!-- ============================================================ -->
+    <section id="events-panel" class="panel panel--gray">
+    <header class="panel__title">GLOBAL EVENTS</header>
+    <div id="events-log" class="events-log">
+        <div class="placeholder">Событий пока нет…</div>
+    </div>
+</section>
 
-        async function updateDiscordStats() {
-            try {
-                const response = await fetch('/api/discord');
-                const bots = await response.json();
-                const listContainer = document.getElementById('discord-bot-list');
-                listContainer.innerHTML = '';
+    <!-- ============================================================ -->
+    <!--  Настройка Minecraft-сервера (можно вынести в VPS или меню) -->
+    <!-- ============================================================ -->
+    <div id="server-config" class="server-config">
+        <span class="server-config__label">MINECRAFT SERVER</span>
+        <input id="srv-host" class="server-config__input" placeholder="host" type="text">
+        <input id="srv-port" class="server-config__input server-config__input--port" placeholder="port" type="number">
+        <button class="server-config__btn" onclick="saveServerConfig()">▶</button>
+    </div>
 
-                bots.forEach(bot => {
-                    let badgeClass = 'badge-offline';
-                    let statusText = 'Выключен';
-                    if (bot.status === 'online') { badgeClass = 'badge-online'; statusText = 'Онлайн'; }
-                    else if (bot.status === 'error') { badgeClass = 'badge-error'; statusText = 'Ошибка'; }
+</div>
 
-                    listContainer.innerHTML += `
-                        <div class="bot-item">
-                            <div class="bot-info">
-                                <span class="bot-name">${bot.name}</span>
-                                <span class="bot-ping">Пинг: ${bot.ping} мс</span>
-                            </div>
-                            <span class="badge ${badgeClass}">${statusText}</span>
-                        </div>
-                    `;
-                });
-            } catch (error) {
-                console.error("Ошибка Discord API:", error);
-            }
-        }
+<!-- ============================================================ -->
+<!--  Модалка инвентаря                                           -->
+<!-- ============================================================ -->
+<div id="inventory-modal" class="modal" hidden>
+    <div class="modal__body">
+        <header class="modal__header">
+            <h3 id="inventory-title" class="modal__title">Инвентарь</h3>
+            <button class="modal__close" onclick="closeInventory()">&#10005;</button>
+        </header>
+        <div id="inventory-content" class="inventory-grid"></div>
+    </div>
+</div>
 
-        async function updateMinecraftStats() {
-            try {
-                const response = await fetch('/api/minecraft');
-                const bots = await response.json();
-                const listContainer = document.getElementById('minecraft-bot-list');
-                listContainer.innerHTML = '';
-
-                bots.forEach(bot => {
-                    let badgeClass = 'badge-offline';
-                    let statusText = 'Оффлайн';
-                    if (bot.status === 'online') { badgeClass = 'badge-online'; statusText = 'В игре'; }
-                    else if (bot.status === 'kicked') { badgeClass = 'badge-kicked'; statusText = 'Кикнут'; }
-                    else if (bot.status === 'connecting') { badgeClass = 'badge-error'; statusText = 'Вход...'; }
-
-                    listContainer.innerHTML += `
-                        <div class="bot-item">
-                            <div class="bot-info">
-                                <span class="bot-name">${bot.username} <span style="color: #6c7086; font-size: 0.8em;">→ ${bot.targetServer}</span></span>
-                                <span class="bot-meta">Здоровье: ❤️ ${bot.health}/20 | Добыто: 📦 ${bot.blocksMined} бл.</span>
-                            </div>
-                            <span class="badge ${badgeClass}">${statusText}</span>
-                        </div>
-                    `;
-                });
-            } catch (error) {
-                console.error("Ошибка Minecraft API:", error);
-            }
-        }
-
-        // Первичный вызов
-        updateSystemStats();
-        updateDiscordStats();
-        updateMinecraftStats();
-
-        // Цикл обновления
-        setInterval(() => {
-            updateSystemStats();
-            updateDiscordStats();
-            updateMinecraftStats();
-        }, 3000);
-    </script>
+<script src="/js/app.js"></script>
 </body>
 </html>
